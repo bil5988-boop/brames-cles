@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Contrôles VGP</title>
+<script>try{var u=localStorage.getItem('vgp-ui');if(u==='espace'||u==='drt')document.documentElement.dataset.ui=u}catch(e){}</script>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#667085;--bd:#d9dde5;--ac:#1f5fbf;--ok:#1a7f45;--ko:#c0392b;--wa:#b7791f;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171c;--card:#1d222b;--tx:#e8ebf0;--mut:#9aa3b2;--bd:#323946;--ac:#6ea4f4;--ok:#4cc27f;--ko:#ef7d6f;--wa:#e0b052;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14171c;--card:#1d222b;--tx:#e8ebf0;--mut:#9aa3b2;--bd:#323946;--ac:#6ea4f4;--ok:#4cc27f;--ko:#ef7d6f;--wa:#e0b052;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header,main{max-width:960px;margin:auto;padding:0 14px}
+header{padding-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+h1{font-size:1.15rem;margin:0;flex:1;min-width:220px}
+button,input,select,textarea{font:inherit;color:inherit}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:9px 13px;cursor:pointer}
+.btn.sec{background:transparent;color:var(--ac);border:1px solid var(--bd)}
+.btn.sm{padding:6px 10px;font-size:.88rem}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0}
+.stat{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px}
+.stat b{font-size:1.5rem;display:block}.stat span{color:var(--mut);font-size:.82rem}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.bar>*{flex:1;min-width:140px}
+input,select,textarea{width:100%;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:9px}
+textarea{min-height:90px;resize:vertical}
+label{display:block;font-size:.85rem;color:var(--mut);margin:10px 0 4px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.mut{color:var(--mut);font-size:.88rem}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{font-size:.75rem;border:1px solid var(--bd);border-radius:99px;padding:1px 8px;color:var(--mut)}
+.chip.VU{color:var(--ok);border-color:var(--ok)}.chip.NOW{color:var(--ko);border-color:var(--ko)}
+.yr{background:transparent;font:inherit;font-weight:700;font-size:.85rem;border:1px solid currentColor;border-radius:99px;padding:2px 11px;cursor:pointer}
+.yr.ok{color:var(--ok)}.yr.ko{color:#e8710a}.yr.no{color:var(--tx);border-color:var(--bd);font-weight:500}
+.yr:hover{background:var(--bg)}
+.badge{border-radius:99px;padding:2px 10px;font-size:.78rem;font-weight:600;border:1px solid currentColor;white-space:nowrap}
+.conforme{color:var(--ok)}.non-conforme{color:var(--ko)}.a-surveiller{color:var(--wa)}
+.ctl{border-top:1px dashed var(--bd);margin-top:8px;padding-top:8px}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.thumbs img{width:84px;height:84px;object-fit:cover;border-radius:8px;border:1px solid var(--bd);cursor:pointer}
+.t{position:relative}.x{position:absolute;top:2px;right:2px;background:#000a;color:#fff;border:0;border-radius:50%;width:22px;height:22px;cursor:pointer}
+dialog{border:1px solid var(--bd);border-radius:14px;background:var(--card);color:var(--tx);width:min(560px,94vw);padding:16px;max-height:92vh;overflow:auto}
+dialog::backdrop{background:#0008}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+#lb{position:fixed;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:99}
+#lb img{max-width:95%;max-height:95%}
+@media print{header,.bar,.btn,.stats{display:none!important}body{background:#fff;color:#000}.card{break-inside:avoid}}
+html{-webkit-text-size-adjust:100%}
+button,select,summary{touch-action:manipulation}
+.card{overflow-wrap:anywhere}
+.btn,input,select{min-height:44px}
+.btn.sm{min-height:40px}
+.yr{min-height:40px;min-width:60px}
+#flt{flex:1 1 100%}
+#flt summary{list-style:none;cursor:pointer;padding:10px 14px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--ac);font-weight:600;min-height:44px;display:flex;align-items:center;justify-content:center}
+#flt summary::-webkit-details-marker{display:none}
+.acts{position:sticky;bottom:-16px;margin:14px 0 -16px;background:var(--card);border-top:1px solid var(--bd);padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:600px){
+  dialog{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border:0;border-radius:0;padding:16px 16px 0}
+  .chips{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .yr{min-width:0;width:100%;padding:0;font-size:.82rem}
+  .hm{display:none}
+  h1{font-size:1.05rem}
+  .stat b{font-size:1.3rem}
+}
+.top>.btn{white-space:nowrap;flex-shrink:0}
+.top>div{min-width:0}
+.sr{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+.cam{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--ac);color:#fff;border-radius:10px;cursor:pointer;font-weight:600;margin:0;font-size:1rem;min-height:52px}
+@media(max-width:600px){
+  .stats{grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
+  .stat{padding:8px 10px}.stat span{font-size:.72rem}.stat b{font-size:1.15rem}
+  dialog[open]{display:flex;flex-direction:column}
+  .acts{margin-top:auto}
+  #flt .bar select{font-size:.9rem;padding:9px 6px}
+  .stat span{line-height:1.25;display:block}
+}
+
+#login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+#login .card{width:100%;max-width:380px;margin:0}.hid{display:none!important}
+header .mut{font-size:.85rem}
+
+.slot{margin-top:6px}
+.chk{display:flex;gap:8px;align-items:center;color:var(--tx);font-size:.95rem;margin:6px 0}
+.chk input{width:auto;min-height:auto}
+.cam+input+.thumbs,.slot .thumbs{margin-bottom:4px}
+.fiche{width:96px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--bd);cursor:pointer;margin-top:6px}
+.thumbs.big img{width:140px;height:105px}.thumbs a{display:block}
+
+.cam{min-height:26px;padding:3px 10px;font-size:.9rem;gap:6px}
+.tb{display:flex;gap:6px;flex:1 1 100%}
+.tb .btn{flex:1;min-width:0;padding:6px 4px;font-size:.88rem;line-height:1.2}
+.tb .btn:not(.on){background:transparent;color:var(--ac);border:1px solid var(--bd)}
+
+:root{--yl:#b58900}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--yl:#f0c000}}
+:root[data-theme="dark"]{--yl:#f0c000}
+.yr.dl{color:var(--yl);border-color:var(--yl);background:color-mix(in srgb,var(--yl) 15%,transparent)}
+.stat.clk{cursor:pointer}.stat.clk.has{border-color:var(--yl)}.stat.clk.has b{color:var(--yl)}
+/* v6 : liste allégée, menu, tuiles cliquables */
+.mfl{display:none}
+.cbody{cursor:pointer;min-width:0}
+.itop{display:flex;gap:10px;align-items:flex-start}
+.thm{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--bd);flex:0 0 auto;background:var(--bg)}
+#hm>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center}
+#hm>summary::-webkit-details-marker{display:none}
+#hb{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media(min-width:601px){#hm>summary{display:none}}
+.stat.clk.nc.has{border-color:#e8710a}.stat.clk.nc.has b{color:#e8710a}
+#nl .ctl:first-child{border-top:0;margin-top:0}
+@media(max-width:600px){
+  header{padding-top:8px}
+  #hm{margin-left:auto}#hm[open]{flex:1 1 100%}
+  #hb{flex-direction:column;align-items:stretch;margin-top:8px}
+  #hb .btn{width:100%;text-align:left}
+  .dsk{display:none!important}
+  .stats{display:flex!important;overflow-x:auto;gap:6px}
+  .stat{flex:0 0 auto;min-width:108px}
+  .card{padding:8px 10px;margin-bottom:6px}
+  #list .chips{grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:4px;margin:6px 0 0}
+  #list .yr{min-height:30px;font-size:.74rem}
+  #list .top .btn{min-height:36px}
+  .mfl{display:block;flex:1 1 100%}
+  #flt{display:none}#flt.open{display:flex}
+  #fg{display:none}
+  .tb .btn{font-size:.76rem;padding:4px 2px}
+}
+/* v7 : années compactes, tableau des droits */
+.yr{min-height:0!important;padding:1px 9px!important;font-size:.76rem!important;line-height:1.35!important;white-space:nowrap}
+.chips,#list .chips{gap:5px!important;margin:6px 0 0!important}
+#list .top .btn{min-height:32px;padding:4px 12px}
+.card{padding:10px 12px}
+@media(max-width:600px){.yr{min-height:26px!important;padding:1px 0!important;white-space:nowrap}#list .chips{grid-template-columns:repeat(auto-fill,minmax(46px,1fr))!important}.card{padding:8px 10px}}
+.mx{border-collapse:collapse;width:100%}.mx th,.mx td{padding:6px 4px;border-bottom:1px solid var(--bd);text-align:center;font-size:.88rem}.mx td:first-child,.mx th:first-child{text-align:left}
+.mx input[type=checkbox]{width:20px;height:20px;min-height:0}.mx th input{min-width:92px;text-align:center;font-weight:600;min-height:38px}
+
+/* v8 : interfaces au choix (réglage admin) – html[data-ui] = classic | espace | drt */
+:root[data-ui="espace"]{--bg:#f1f3f7;--card:#fff;--tx:#1d2330;--mut:#5d6b82;--bd:#d5dbe6;--ac:#1b57b3;--ok:#1a7f45;--ko:#c0392b;--wa:#b7791f;--yl:#b58900;--nav:#12306a;--band:#12306a;--hl:#1b57b3;--cta:#1b57b3;color-scheme:light}
+:root[data-ui="drt"]{--bg:#e8eaf2;--card:#fff;--tx:#1f2640;--mut:#5f6985;--bd:#cdd2e1;--ac:#1d4f9f;--ok:#1a7f45;--ko:#c0392b;--wa:#b7791f;--yl:#b58900;--nav:#14305e;--band:#1f4380;--hl:#1d4f9f;--cta:#2e9a4f;color-scheme:light}
+@media (prefers-color-scheme:dark){
+:root[data-ui="espace"]:not([data-theme="light"]){--bg:#0e1a33;--card:#16264a;--tx:#e8eefb;--mut:#9fb0cf;--bd:#2b3f6b;--ac:#7fb0ff;--ok:#4cc27f;--ko:#ef7d6f;--wa:#e0b052;--yl:#f0c000;--nav:#0a1630;--band:#0a1630;--hl:#8fb8ff;--cta:#2f6fd6;color-scheme:dark}
+:root[data-ui="drt"]:not([data-theme="light"]){--bg:#10162a;--card:#1a2340;--tx:#e6eaf6;--mut:#9aa5c4;--bd:#2c3760;--ac:#8db4ff;--ok:#4cc27f;--ko:#ef7d6f;--wa:#e0b052;--yl:#f0c000;--nav:#0b1226;--band:#16254a;--hl:#8db4ff;--cta:#2e9a4f;color-scheme:dark}}
+/* barre du haut commune (bandeau marine pleine largeur) */
+:root[data-ui="espace"] header,:root[data-ui="drt"] header{max-width:none;margin:0;padding:10px max(14px,calc((100% - 932px)/2));background:var(--nav);color:#fff;min-height:58px}
+:root[data-ui="espace"] h1,:root[data-ui="drt"] h1{color:#fff;font-size:1.02rem;font-weight:600}
+:root[data-ui="espace"] #who,:root[data-ui="drt"] #who{color:#ffffffb8}
+:root[data-ui="espace"] #hb .btn,:root[data-ui="espace"] #hm>summary,:root[data-ui="drt"] #hb .btn,:root[data-ui="drt"] #hm>summary{background:transparent;color:#fff;border:1px solid #ffffff40;border-radius:4px;box-shadow:none}
+:root[data-ui="espace"] #hb .btn:hover,:root[data-ui="drt"] #hb .btn:hover{background:#ffffff1f}
+:root[data-ui="espace"] #hb #add{background:#fff;color:var(--nav);border-color:#fff}
+:root[data-ui="drt"] #hb #add{background:var(--cta);border-color:var(--cta)}
+/* --- Espace Opérationnel : cartes blanches à liseré bleu, titres bleus, onglets soulignés --- */
+:root[data-ui="espace"] h1::before{content:"";display:inline-block;width:58px;height:26px;margin-right:12px;vertical-align:middle;background:url(/logo.png) left center/contain no-repeat;filter:brightness(0) invert(1)}
+:root[data-ui="espace"] .card,:root[data-ui="espace"] .stat{border:0 solid var(--bd);border-bottom:4px solid var(--hl);border-radius:3px;box-shadow:0 1px 4px #0002}
+:root[data-ui="espace"] .stat.clk.has{border-bottom-color:var(--yl)}
+:root[data-ui="espace"] .stat.clk.nc.has{border-bottom-color:#e8710a}
+:root[data-ui="espace"] .stat b{color:var(--hl)}
+:root[data-ui="espace"] .stat span{text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;font-weight:600}
+:root[data-ui="espace"] .card .top strong{color:var(--hl);letter-spacing:.02em}
+:root[data-ui="espace"] .btn{border-radius:3px}
+:root[data-ui="espace"] .btn:not(.sec){background:var(--cta)}
+:root[data-ui="espace"] .tb{gap:0;padding:0 4px;background:var(--card);border-radius:3px;box-shadow:0 1px 4px #0002}
+:root[data-ui="espace"] .tb .btn{background:transparent;color:var(--hl);border:0;border-bottom:3px solid transparent;border-radius:0;text-transform:uppercase;letter-spacing:.05em;font-size:.78rem;font-weight:600}
+:root[data-ui="espace"] .tb .btn.on{background:transparent;color:var(--tx);border-bottom-color:var(--hl)}
+:root[data-ui="espace"] input,:root[data-ui="espace"] select,:root[data-ui="espace"] textarea{border-radius:3px}
+:root[data-ui="espace"] dialog{border:0;border-top:4px solid var(--hl);border-radius:4px}
+:root[data-ui="espace"] dialog>strong:first-child{color:var(--hl);text-transform:uppercase;letter-spacing:.04em}
+/* --- DRT Activités : bandeau de recherche bleu, onglets, boutons verts en majuscules, champs à soulignement --- */
+:root[data-ui="drt"] main{display:flex;flex-direction:column}
+:root[data-ui="drt"] main>.bar{order:-1;margin:0 0 16px;padding:0 14px 16px;background:var(--band);box-shadow:0 0 0 100vmax var(--band);clip-path:inset(0 -100vmax);gap:0 8px;align-items:stretch}
+:root[data-ui="drt"] .tb{order:-1;flex:1 1 100%;gap:2px;padding-top:10px}
+:root[data-ui="drt"] #tb .btn{background:transparent;color:#fff;border:0;border-radius:4px 4px 0 0;box-shadow:none;text-transform:none;letter-spacing:0;font-weight:600;font-size:.9rem;padding:10px 6px}
+:root[data-ui="drt"] #tb .btn.on{background:var(--card);color:var(--hl)}
+:root[data-ui="drt"] #q{order:1;flex:1 1 100%;border-radius:0 4px 4px 4px;border:0;background:var(--card)}
+:root[data-ui="drt"] #flt{order:2;flex:1 1 100%;margin-top:10px!important}
+:root[data-ui="drt"] .mfl{order:2;background:transparent;color:#fff;border-color:#ffffff66;margin-top:10px}
+:root[data-ui="drt"] .card,:root[data-ui="drt"] .stat{border:0;border-radius:4px;box-shadow:0 1px 3px #0003,0 1px 1px #0002}
+:root[data-ui="drt"] .stat{border-left:4px solid var(--cta)}
+:root[data-ui="drt"] .stat.clk.has{border-left-color:var(--yl)}
+:root[data-ui="drt"] .stat.clk.nc.has{border-left-color:#e8710a}
+:root[data-ui="drt"] .stat b{color:var(--hl)}
+:root[data-ui="drt"] .stat span{text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;font-weight:600}
+:root[data-ui="drt"] .btn{border-radius:3px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;font-size:.82rem}
+:root[data-ui="drt"] .btn:not(.sec){background:var(--cta);box-shadow:0 2px 3px #0003}
+:root[data-ui="drt"] .btn.sec{border-color:transparent;box-shadow:none}
+:root[data-ui="drt"] #hb .btn{border-color:#ffffff40}
+:root[data-ui="drt"] #tb .btn,:root[data-ui="drt"] #tb .btn.on{text-transform:none;letter-spacing:0;font-size:.9rem;border:0}
+:root[data-ui="drt"] #tb .btn.on{box-shadow:none}
+:root[data-ui="drt"] input,:root[data-ui="drt"] select,:root[data-ui="drt"] textarea{border:0;border-bottom:2px solid var(--mut);border-radius:3px 3px 0 0}
+:root[data-ui="drt"] #q{border-bottom:0}
+:root[data-ui="drt"] dialog{border:0;border-radius:6px;box-shadow:0 8px 28px #0006}
+:root[data-ui="drt"] dialog>strong:first-child{color:var(--hl);font-size:1.05rem}
+/* --- sélecteur d'interface (admin) --- */
+.uopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:10px}
+.uo{display:block;text-align:left;width:100%;background:var(--card);border:2px solid var(--bd);border-radius:10px;padding:8px;cursor:pointer;color:var(--tx)}
+.uo.sel{border-color:var(--ac);box-shadow:0 0 0 2px color-mix(in srgb,var(--ac) 25%,transparent)}
+.uo small{display:block;color:var(--mut);font-size:.78rem;margin-top:2px}
+.pvm{display:block;position:relative;height:64px;border-radius:6px;overflow:hidden;background:#f6f7f9;border:1px solid #d9dde5;margin-bottom:6px}
+.pvm i,.pvm u,.pvm b{position:absolute;display:block}
+.pvm i{left:0;right:0;top:0;height:14px}
+.pvm u{left:0;right:0;top:14px;height:0}
+.pvm b{left:8px;right:8px;top:24px;height:30px;background:#fff;border-radius:3px}
+.pv-c i{background:#fff;border-bottom:1px solid #d9dde5}.pv-c b{border:1px solid #d9dde5;border-radius:6px}
+.pv-e{background:#f1f3f7}.pv-e i{background:#12306a}.pv-e b{border-bottom:4px solid #1b57b3;box-shadow:0 1px 3px #0003}
+.pv-d{background:#e8eaf2}.pv-d i{background:#14305e}.pv-d u{height:16px;background:#1f4380}.pv-d b{top:34px;height:22px;box-shadow:0 1px 3px #0004;border-left:4px solid #2e9a4f}
+/* v8 : filtres -30 %, liste -10 %, liste des conformes */
+#tb,#flt,#fltb{zoom:.77}#list .card{zoom:.9}
+#okl{width:100%;border-collapse:collapse}#okl td{padding:4px 6px;border-bottom:1px solid var(--bd);font-size:.9rem}#okl td:last-child{text-align:right;color:var(--mut)}
+</style>
+<script src="/jspdf.umd.min.js" onerror="var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';document.head.appendChild(s)"></script>
+</head>
+<body>
+<div id="login"><form id="lf" class="card">
+  <h2 style="margin:0">Contrôles VGP</h2><div class="mut">Connexion</div>
+  <label>Identifiant</label><input id="lu" autocomplete="username" autocapitalize="none" required>
+  <label>Mot de passe</label><input id="lp" type="password" autocomplete="current-password" required>
+  <div id="le" style="color:var(--ko);margin-top:8px"></div>
+  <button class="btn" style="width:100%;margin-top:12px">Se connecter</button>
+</form></div>
+<header>
+  <h1>Contrôles VGP – charges d’essai et clés de levage</h1>
+  <span class="mut" id="who"></span>
+  <details id="hm"><summary class="btn sec sm">☰ Menu</summary><div id="hb"><button class="btn sec sm" id="csv">Export CSV</button>
+  <button class="btn sm hid" id="add">+ Matériel</button>
+  <button class="btn sec sm hid" id="usr">Utilisateurs</button>
+  <button class="btn sec sm hid" id="rol">Catégories &amp; droits</button><button class="btn sec sm hid" id="jnl">Journal</button><button class="btn sec sm hid" id="uib">Apparence</button><button class="btn sec sm hid" id="pdfcfg">Trame PDF</button>
+  <button class="btn sec sm" id="pwd">Mot de passe</button>
+  <button class="btn sec sm" id="out">Déconnexion</button></div></details>
+</header>
+<main>
+  <div class="stats" id="stats"></div>
+  <div class="bar">
+    <input id="q" placeholder="Rechercher (n°, désignation…)" type="search">
+    <div class="tb" id="tb"><button class="btn on" data-t="AL">Clés (AL)</button><button class="btn" data-t="CM">Brames mères (CM)</button><button class="btn" data-t="CE">Brames d’essais (CE)</button><button class="btn" data-t="PR">Points d’ancrage (PR)</button></div>
+    <button class="btn sec sm mfl" id="fltb">Filtres ▾</button>
+    <div id="flt" class="bar" style="margin:0">
+    <select id="fg" aria-label="Type de matériel"><option value="AL" selected>Clés (AL)</option><option value="CM">Brames mères (CM)</option><option value="CE">Brames d’essais (CE)</option><option value="PR">Points d’ancrage (PR)</option><option value="">Tout sélectionner</option></select>
+    <select id="fy" aria-label="Année"><option value="">Toutes les années</option></select>
+    <select id="fs" aria-label="État du contrôle"><option value="">Tous les états</option><option value="ok">Vu conforme</option><option value="ko">Vu non conforme</option><option value="no">Non vu</option></select>
+    <select id="fl"><option value="">Toutes localisations</option></select>
+    </div>
+  </div>
+  <div class="mut" id="cnt" style="margin-bottom:8px"></div>
+  <div id="list"></div>
+</main>
+<dialog id="dlg">
+  <strong id="dt">Contrôle</strong><div class="mut" id="dsub"></div>
+  <label>Date du contrôle</label><input type="datetime-local" id="date">
+  <label>Résultat</label>
+  <select id="res"><option value="conforme">Conforme</option><option value="non-conforme">Non conforme</option><option value="non-vu">Non vu</option></select>
+  <label>Commentaires / observations <span class="mut">(1 200 caractères max. : le rapport tient sur une page)</span></label><textarea id="com" maxlength="1200"></textarea>
+  <div id="slots"></div>
+  <div class="mut" id="msg" style="margin-top:8px;color:var(--ko)"></div>
+  <div class="acts"><button class="btn" id="save">Enregistrer</button><button class="btn sec" id="cancel">Annuler</button></div>
+</dialog>
+<dialog id="dlg2">
+  <strong id="it">Éditer</strong>
+  <label>N° de composant</label><input id="iref" autocapitalize="characters">
+  <div class="row">
+    <div><label>Type</label><input id="itype" list="types"></div>
+    <div><label>Catégorie</label><select id="igrp"><option value="charge">Charge d’essai</option><option value="cle">Clé de levage</option></select></div>
+  </div>
+  <label>Désignation</label><input id="ides">
+  <div class="row">
+    <div><label>Masse (kg)</label><input id="imas" inputmode="numeric"></div>
+    <div><label>Localisation</label><input id="iloc" list="locs"></div>
+  </div>
+  <label>Lieu de stockage</label><input id="isto">
+  <div id="islots"></div>
+  <div class="mut" id="imsg" style="margin-top:8px;color:var(--ko)"></div>
+  <div class="acts"><button class="btn" id="isave">Enregistrer</button><button class="btn sec" id="icancel">Annuler</button><button class="btn sec" id="idel" style="margin-left:auto;color:var(--ko)">Supprimer</button></div>
+  <datalist id="types"><option>CE</option><option>CM</option><option>AL</option><option>PR</option></datalist><datalist id="locs"></datalist>
+</dialog>
+<dialog id="dlgd">
+  <strong id="dd_t"></strong><div class="mut" id="dd_d"></div>
+  <div id="dd_b" style="margin-top:8px"></div>
+  <div class="acts"><button class="btn hid" id="dd_edit">Éditer</button><button class="btn sec" id="dd_close" style="margin-left:auto">Fermer</button></div>
+</dialog>
+<dialog id="dlgr">
+  <strong>Demandes de suppression</strong>
+  <div id="rl" style="margin-top:8px"></div>
+  <div class="acts"><button class="btn sec" id="rlclose">Fermer</button></div>
+</dialog>
+<dialog id="dlge">
+  <strong>Modifier l’utilisateur</strong>
+  <label>Nom affiché (prénom NOM)</label><input id="en">
+  <label>Identifiant de connexion</label><input id="eu" autocapitalize="none">
+  <div class="mut" id="em" style="margin-top:8px;color:var(--ko)"></div>
+  <div class="acts"><button class="btn" id="esave">Enregistrer</button><button class="btn sec" id="ecancel">Annuler</button></div>
+</dialog>
+<dialog id="dls">
+  <strong>Trame du rapport PDF</strong>
+  <div class="mut">Textes, couleurs et logo du rapport. Dans les textes, entourez un mot de ** pour le mettre en gras.</div>
+  <div id="sfb"></div>
+  <label>Logo (en haut à gauche)</label>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><img id="sflogo" alt="logo" style="height:48px;max-width:140px;object-fit:contain;background:#fff;border:1px solid var(--bd);border-radius:6px;padding:2px"><input type="file" id="sflogof" accept="image/*" style="flex:1;min-width:160px"><button class="btn sec sm" id="sflogod">Logo par défaut</button></div>
+  <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn sec sm" id="spv1">Aperçu « Conforme »</button><button class="btn sec sm" id="spv2">Aperçu « Non conforme »</button><button class="btn sec sm" id="sdef" style="color:var(--ko)">Tout rétablir par défaut</button></div>
+  <div class="mut" id="sm" style="margin-top:8px"></div>
+  <div class="acts"><button class="btn" id="ssave">Enregistrer</button><button class="btn sec" id="scancel">Fermer</button></div>
+</dialog>
+<dialog id="dlg3">
+  <strong id="rt">Rapport</strong>
+  <div id="rb" style="margin-top:8px"></div>
+  <div class="mut" id="rmsg" style="margin-top:8px"></div>
+  <div class="acts"><button class="btn sec" id="rnew">Saisir un contrôle</button><button class="btn sec" id="rclose" style="margin-left:auto">Fermer</button></div>
+</dialog>
+<dialog id="dlgp">
+  <strong>Changer le mot de passe</strong><div class="mut" id="pnote"></div>
+  <label>Mot de passe actuel</label><input id="po" type="password" autocomplete="current-password">
+  <label>Nouveau mot de passe (10 caractères minimum)</label><input id="pn" type="password" autocomplete="new-password">
+  <label>Confirmer</label><input id="pc" type="password" autocomplete="new-password">
+  <div class="mut" id="pm" style="margin-top:8px;color:var(--ko)"></div>
+  <div class="acts"><button class="btn" id="psave">Enregistrer</button><button class="btn sec" id="pcancel">Annuler</button></div>
+</dialog>
+<dialog id="dlgu">
+  <strong>Utilisateurs</strong><div id="ul"></div>
+  <div class="card" style="margin-top:12px"><strong>Nouvel utilisateur</strong>
+    <div class="row">
+      <div><label>Identifiant</label><input id="nu" autocapitalize="none"></div>
+      <div><label>Nom affiché</label><input id="nn"></div>
+      <div><label>Rôle</label><select id="nr"><option value="controleur">Contrôle</option><option value="gestionnaire">Gestionnaire</option><option value="admin">Admin</option></select></div>
+      <div><label>Mot de passe provisoire (10 car. min.)</label><input id="np"></div>
+    </div>
+    <button class="btn" id="nadd" style="margin-top:10px">Créer</button>
+  </div>
+  <div class="mut" id="um" style="margin-top:8px;color:var(--ko)"></div>
+  <div class="acts"><button class="btn sec" id="uclose">Fermer</button></div>
+</dialog>
+<dialog id="dlgui">
+  <strong>Apparence de l’interface</strong>
+  <div class="mut">Style appliqué à tous les utilisateurs. L’aperçu est immédiat ; il n’est enregistré pour les autres qu’après « Enregistrer ».</div>
+  <div class="uopts" id="uib2">
+    <button type="button" class="uo" data-ui="classic"><span class="pvm pv-c"><i></i><u></u><b></b></span><strong>Actuelle</strong><small>Sobre et claire, comme aujourd’hui</small></button>
+    <button type="button" class="uo" data-ui="espace"><span class="pvm pv-e"><i></i><u></u><b></b></span><strong>Espace Opérationnel</strong><small>Barre marine, cartes à liseré bleu, onglets soulignés</small></button>
+    <button type="button" class="uo" data-ui="drt"><span class="pvm pv-d"><i></i><u></u><b></b></span><strong>DRT Activités</strong><small>Bandeau de recherche bleu, onglets, boutons verts</small></button>
+  </div>
+  <div class="mut" id="uim" style="margin-top:8px;color:var(--ko)"></div>
+  <div class="acts"><button class="btn" id="uisave">Enregistrer</button><button class="btn sec" id="uicancel">Annuler</button></div>
+</dialog>
+<dialog id="dlgok">
+  <strong>Vus conformes</strong>
+  <select id="oky" aria-label="Année" style="margin-top:8px"></select>
+  <div class="mut" id="okc" style="margin:6px 0"></div>
+  <table id="okl"></table>
+  <div class="acts"><button class="btn sec" id="okclose">Fermer</button></div>
+</dialog>
+<dialog id="dlgn">
+  <strong>Matériels non conformes</strong><div class="mut">Dernier contrôle non conforme de chaque matériel.</div>
+  <div id="nl" style="margin-top:8px"></div>
+  <div class="acts"><button class="btn sec" id="nclose">Fermer</button></div>
+</dialog>
+<dialog id="dlgk">
+  <strong>Droits de l’utilisateur</strong><div class="mut" id="kt"></div><div class="mut" id="kn" style="margin-top:6px"></div>
+  <div id="kb" style="margin-top:8px"></div>
+  <div class="mut" id="km" style="margin-top:8px;color:var(--ko)"></div>
+  <div class="acts"><button class="btn" id="ksave">Enregistrer</button><button class="btn sec" id="kreset">Rôle par défaut</button><button class="btn sec" id="kclose" style="margin-left:auto">Fermer</button></div>
+</dialog>
+<dialog id="dlgro">
+  <strong>Catégories d’utilisateurs et droits</strong>
+  <div class="mut">Renommez les catégories et cochez les droits de chacune. Ils s’appliquent à tous les comptes de la catégorie, sauf ceux dont les droits ont été personnalisés (bouton « Droits » d’un utilisateur). Un admin a toujours tous les droits.</div>
+  <div id="rob" style="margin-top:8px"></div>
+  <div class="mut" id="rom" style="margin-top:8px"></div>
+  <div class="acts"><button class="btn" id="rosave">Enregistrer</button><button class="btn sec" id="rodef" style="color:var(--ko)">Valeurs par défaut</button><button class="btn sec" id="roclose" style="margin-left:auto">Fermer</button></div>
+</dialog>
+<dialog id="dlgj">
+  <strong>Journal des modifications</strong><div class="mut">Visible par les admins uniquement – 1 000 dernières actions.</div>
+  <div class="bar" style="margin:8px 0 0"><select id="jk" aria-label="Type d’action"><option value="">Tout</option><option value="ctl">Contrôles</option><option value="item">Matériels</option><option value="user">Comptes</option><option value="role">Catégories et droits</option><option value="settings">Trame PDF / apparence</option></select><input id="jq" placeholder="Rechercher (nom, n°, texte…)" type="search"></div>
+  <div id="jl" style="margin-top:8px"></div>
+  <div class="acts"><button class="btn sec" id="jclose">Fermer</button></div>
+</dialog>
+<div id="lb"><img id="lbi" alt=""></div>
+
+<script>
+let UI='classic',UIsel='classic',SETTINGS={},UL=[],editU=null,logoNew=null,logoReset=false,detRef=null,ITEMS=[],ctrls=[],ME=null,cur=null,editId=null,photos=[],rp=null,itemRef=null,forced=false,shown=40,tq;
+const CY=new Date().getFullYear(),Y0=2022,YEND=CY+2,RO=['controleur','gestionnaire','admin'];
+const yrs=(a,b)=>Array.from({length:b-a+1},(_,k)=>a+k);
+const LISTY=()=>yrs(Math.max(Y0,YEND-9),YEND),ALLY=()=>yrs(Y0,YEND);
+const $=id=>document.getElementById(id);
+const LAB={'conforme':'Conforme','non-conforme':'Non conforme','non-vu':'Non vu'};
+const GL={charge:'Charge d’essai',cle:'Clé de levage'};
+let ROLES={controleur:'Contrôle',gestionnaire:'Gestionnaire',admin:'Admin'},RINFO={};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtAt=t=>new Date(t).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'});
+const fmt=d=>{if(!d)return '';const [a,t]=d.split('T');return a.split('-').reverse().join('/')+(t?' '+t:'')};
+const nowL=()=>{const n=new Date(),p=x=>String(x).padStart(2,'0');return n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate())+'T'+p(n.getHours())+':'+p(n.getMinutes())};
+const purl=p=>p.startsWith('data:')?p:'/api/photo/'+p;
+const ph=c=>[...(c.main||[]),...(c.comp||[]),...(c.anom||[]),...(c.old||[])];
+const can=k=>!!(ME&&ME.perms&&ME.perms.includes(k)),isAdm=()=>ME&&ME.role==='admin';
+async function api(m,u,b){
+  const r=await fetch(u,{method:m,credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF':'1'},body:b?JSON.stringify(b):undefined});
+  let j={};try{j=await r.json()}catch(e){}
+  if(r.status===401&&u!=='/api/login'){showLogin();throw new Error('Session expirée : reconnectez-vous')}
+  if(!r.ok)throw new Error(j.e||'Erreur '+r.status);
+  return j;
+}
+function dlBlob(n,b){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+function showLogin(){ME=null;ITEMS=[];ctrls=[];$('list').innerHTML='';$('stats').innerHTML='';$('who').textContent='';$('usr').classList.add('hid');$('pdfcfg').classList.add('hid');$('uib').classList.add('hid');$('rol').classList.add('hid');$('jnl').classList.add('hid');$('add').classList.add('hid');['dlg','dlg2','dlg3','dlgu','dlgd','dlgr','dlge','dls','dlgn','dlgk','dlgro','dlgj','dlgui'].forEach(i=>$(i).open&&$(i).close());$('login').classList.remove('hid');$('lp').value=''}
+async function load(){
+  const d=await api('GET','/api/data');ME=d.me;ITEMS=d.items;ctrls=d.controls;SETTINGS=d.settings;UI=d.ui||'classic';saveUI(UI);RINFO=d.roles;ROLES=Object.fromEntries(RO.map(r=>[r,d.roles[r].n]));$('nr').innerHTML=RO.map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join('');
+  $('who').textContent=ME.n+' · '+ROLES[ME.role];
+  $('add').classList.toggle('hid',!can('item.add'));$('usr').classList.toggle('hid',!isAdm());$('pdfcfg').classList.toggle('hid',!isAdm());$('uib').classList.toggle('hid',!isAdm());$('rol').classList.toggle('hid',!isAdm());$('jnl').classList.toggle('hid',!isAdm());$('login').classList.add('hid');
+  refreshLoc();render();
+}
+$('lf').onsubmit=async e=>{e.preventDefault();$('le').textContent='';
+  try{const u=await api('POST','/api/login',{u:$('lu').value,p:$('lp').value});ME=u;if(u.must)openPwd(true);else await load()}catch(x){$('le').textContent=x.message}};
+$('out').onclick=async()=>{try{await api('POST','/api/logout')}catch(e){}showLogin()};
+/* mot de passe */
+function openPwd(f){forced=f;$('pnote').textContent=f?'Vous devez choisir un nouveau mot de passe pour continuer.':'';$('pcancel').classList.toggle('hid',f);
+  ['po','pn','pc'].forEach(i=>$(i).value='');$('pm').textContent='';$('dlgp').showModal()}
+$('pwd').onclick=()=>openPwd(false);
+$('pcancel').onclick=()=>$('dlgp').close();
+$('dlgp').addEventListener('cancel',e=>{if(forced)e.preventDefault()});
+$('psave').onclick=async()=>{
+  if($('pn').value!==$('pc').value){$('pm').textContent='La confirmation ne correspond pas.';return}
+  try{await api('POST','/api/password',{old:$('po').value,new:$('pn').value});const f=forced;forced=false;$('dlgp').close();if(f)await load()}catch(e){$('pm').textContent=e.message}};
+/* données */
+const byRef=r=>ctrls.filter(c=>c.ref===r).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+function ys(i,y){
+  const cs=byRef(i.r).filter(c=>(c.date||'').startsWith(String(y)));
+  if(cs.length)return {c:cs[0].res==='conforme'?'ok':cs[0].res==='non-vu'?'no':'ko',ctl:cs[0]};
+  const k=y-Y0;return {c:(k>=0&&k<5&&i.y&&i.y[k]==='VU')?'ok':'no'};
+}
+function statusOf(i,y){const s=ys(i,y);
+  if(s.ctl)return {txt:LAB[s.ctl.res],cls:s.ctl.res,c:s.c};
+  return s.c==='ok'?{txt:'Vu (d’après le fichier de suivi, sans détail)',cls:'conforme',c:'ok'}:{txt:'Non vu',cls:'',c:'no'}}
+const ncList=()=>ITEMS.map(i=>({i,c:byRef(i.r)[0]})).filter(x=>x.c&&x.c.res==='non-conforme');
+function stats(){
+  const done=ITEMS.filter(i=>ys(i,CY).ctl&&ys(i,CY).c!=='no').length;
+  const SY=+$('fy').value||CY;
+  $('stats').innerHTML=[[ITEMS.length,'matériels enregistrés'],[ITEMS.filter(i=>ys(i,SY).c==='ok').length,'vus conformes en '+SY,3],[done,'contrôlés dans l’appli '+CY],[ncList().length,'non conformes',2],[ctrls.filter(c=>c.del).length,'demandes de suppression',1]]
+   .map(([a,b,x])=>`<div class="stat${x?' clk'+(x===2?' nc':'')+(a&&x!==3?' has':''):''}"${x===1?' data-del="1"':x===2?' data-nc="1"':x===3?' data-ok="1"':''}><b>${a}</b><span>${b}</span></div>`).join('');
+}
+function refreshLoc(){
+  const v=$('fl').value,ls=Array.from(new Set(ITEMS.map(i=>i.l).filter(Boolean))).sort();
+  $('fl').innerHTML='<option value="">Toutes localisations</option>'+ls.map(x=>`<option>${esc(x)}</option>`).join('');
+  $('fl').value=ls.includes(v)?v:'';$('locs').innerHTML=ls.map(x=>`<option value="${esc(x)}">`).join('');
+}
+function render(){
+  const PD={};ctrls.forEach(c=>{if(c.del)(PD[c.ref]=PD[c.ref]||new Set()).add((c.date||'').slice(0,4))});
+  const q=$('q').value.toLowerCase(),g=$('fg').value,s=$('fs').value,l=$('fl').value,y=$('fy').value,LY=LISTY();
+  const L=ITEMS.filter(i=>(!g||i.t===g)&&(!l||i.l===l)&&(!q||(i.r+' '+i.d).toLowerCase().includes(q))&&
+    (!s||(y?ys(i,+y).c===s:yrs(Y0,CY).some(a=>ys(i,a).c===s))));
+  $('cnt').textContent=L.length+' matériel(s)';
+  $('list').innerHTML=L.slice(0,shown).map(i=>`<div class="card"><div class="top"><div class="itop cbody" data-i="${esc(i.r)}"><div><strong>${esc(i.r)}</strong> <span class="mut">· ${esc(i.t)}</span><span class="dsk mut" style="font-size:.78rem"> · Détail ›</span><div>${esc(i.d)||'<span class="mut">(sans désignation)</span>'}</div><div class="mut">${i.m!==''?i.m+' kg':''}${i.l?' · '+esc(i.l):''}<span class="dsk">${i.s?' · '+esc(i.s):''}</span></div></div></div>${can('ctl.create')?`<button class="btn sm" data-c="${esc(i.r)}">Contrôler</button>`:''}</div>
+  <div class="chips">${LY.map(a=>`<button class="yr ${ys(i,a).c}${PD[i.r]&&PD[i.r].has(String(a))?' dl':''}" data-y="${a}" data-ref="${esc(i.r)}">${a}</button>`).join('')}</div></div>`).join('')+(L.length>shown?`<button class="btn sec" id="more" style="width:100%">Afficher plus (${L.length-shown} restants)</button>`:'');
+  stats();
+}
+const syncTb=()=>document.querySelectorAll('#tb .btn').forEach(b=>b.classList.toggle('on',b.dataset.t===$('fg').value));
+$('tb').onclick=e=>{const t=e.target.closest('button');if(!t)return;$('fg').value=t.dataset.t;syncTb();shown=40;render()};
+$('fg').addEventListener('input',syncTb);
+['q','fg','fy','fs','fl'].forEach(i=>$(i).oninput=()=>{shown=40;clearTimeout(tq);tq=setTimeout(render,i==='q'?200:0)});
+$('list').onclick=e=>{const b=e.target.closest('[data-c],[data-i],[data-y],#more');if(!b)return;
+  if(b.dataset.c)openDlg(b.dataset.c);else if(b.dataset.i)openDetail(b.dataset.i);else if(b.dataset.y)openReport(b.dataset.ref,+b.dataset.y);else if(b.id==='more'){shown+=40;render()}};
+function okList(){const y=+$('oky').value;
+  const L=ITEMS.map(i=>({i,s:ys(i,y)})).filter(x=>x.s.c==='ok').sort((a,b)=>a.i.r.localeCompare(b.i.r));
+  $('okc').textContent=L.length+' matériel(s) vu(s) conforme(s) en '+y;
+  $('okl').innerHTML=L.map(({i,s})=>`<tr><td><strong>${esc(i.r)}</strong></td><td>${s.ctl?fmt(s.ctl.date):'fichier de suivi'}</td></tr>`).join('')}
+function openOk(){$('oky').innerHTML=yrs(Y0,CY).reverse().map(y=>`<option>${y}</option>`).join('');$('oky').value=String(+$('fy').value||CY);okList();$('dlgok').showModal()}
+$('oky').onchange=okList;$('okclose').onclick=()=>$('dlgok').close();
+$('stats').onclick=e=>{if(e.target.closest('[data-ok]'))openOk();else if(e.target.closest('[data-del]'))openDel();else if(e.target.closest('[data-nc]'))openNc()};
+function openNc(){
+  const L=ncList().sort((a,b)=>(b.c.date||'').localeCompare(a.c.date||''));
+  $('nl').innerHTML=L.map(({i,c})=>`<div class="ctl"><div><strong>${esc(i.r)}</strong> <span class="mut">· ${esc(i.t)}</span></div><div>${esc(i.d)}</div><div class="mut">${esc(c.num)} · ${fmt(c.date)}${c.by?' · '+esc(c.by.n):''}${c.del?' · ⚠ suppression demandée':''}</div>${c.com?`<div class="mut" style="margin-top:2px">« ${esc(c.com.length>140?c.com.slice(0,140)+'…':c.com)} »</div>`:''}<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-v="${c.id}">Voir le rapport</button><button class="btn sec sm" data-pdf="${c.id}">PDF</button><button class="btn sec sm" data-i="${esc(i.r)}">Fiche</button></div></div>`).join('')||'<div class="mut">Aucun matériel non conforme.</div>';
+  if(!$('dlgn').open)$('dlgn').showModal()}
+$('nl').onclick=e=>{const t=e.target.closest('button');if(!t)return;const D=t.dataset;
+  if(D.v){const c=ctrls.find(x=>x.id===D.v);openReport(c.ref,+(c.date||'').slice(0,4))}
+  else if(D.pdf)exportPdf(ctrls.find(x=>x.id===D.pdf),t);
+  else if(D.i)openDetail(D.i)};
+$('nclose').onclick=()=>$('dlgn').close();
+$('lb').onclick=()=>$('lb').style.display='none';
+/* contrôle */
+const SL={m:{b:'Ajouter une photo principale',t:'Photo principale (vue générale) – 1 maximum',max:1,keepable:1,list:[],cur:[]},
+  c:{b:'Ajouter une photo complémentaire',t:'Photos complémentaires – 4 maximum',max:4,keepable:1,list:[],cur:[]},
+  a:{b:'Ajouter une photo d’anomalie',t:'Photos d’anomalies – au moins 1 (obligatoire), 4 maximum – uniquement sur ce rapport',max:4,list:[],cur:[]}};
+$('slots').innerHTML=Object.entries(SL).map(([k,s])=>`<div class="slot" id="s${k}"><label>${s.t}</label>${s.keepable?`<label class="chk hid" id="kl${k}"><input type="checkbox" id="k${k}"> Je souhaite garder la(les) photo(s) actuelle(s)</label>`:''}<div id="n${k}"><label class="cam" for="f${k}">📷 ${s.b}</label><input type="file" id="f${k}" class="sr" accept="image/*" capture="environment"${s.max>1?' multiple':''}></div><div class="thumbs" id="v${k}"></div></div>`).join('');
+const anomVis=()=>$('sa').classList.toggle('hid',$('res').value!=='non-conforme');
+$('res').addEventListener('change',anomVis);
+const keepOn=k=>SL[k].keepable&&SL[k].cur.length>0&&$('k'+k).checked;
+const view=k=>keepOn(k)?[...SL[k].cur,...SL[k].list]:SL[k].list;
+function pv(k){const s=SL[k],keep=keepOn(k),L=view(k),off=keep?s.cur.length:0;
+  if(s.keepable)$('kl'+k).classList.toggle('hid',!s.cur.length);
+  $('n'+k).classList.toggle('hid',L.length>=s.max);
+  $('v'+k).innerHTML=L.map((p,j)=>`<div class="t"><img src="${purl(p)}" alt="photo">${j>=off?`<button class="x" data-k="${k}" data-r="${j-off}" aria-label="Retirer">×</button>`:''}</div>`).join('')}
+const pvAll=()=>['m','c','a'].forEach(pv);
+function openDlg(ref,c,dd){
+  cur=ref;editId=c?c.id:null;const it=ITEMS.find(i=>i.r===ref);
+  $('dt').textContent=(c?'Modifier le contrôle – ':'Contrôle – ')+ref;$('dsub').textContent=it.d+(c?' · '+c.num:'');
+  SL.m.cur=it.p?[it.p]:[];SL.c.cur=[...(it.pc||[])];
+  for(const k of ['m','c','a']){const s=SL[k];s.list=[];
+    if(s.keepable){const own=c?(k==='m'?c.main:c.comp):[];let keep=s.cur.length>0;
+      if(c&&own.length){if(own.length>=s.cur.length&&s.cur.every((p,j)=>own[j]===p))s.list=own.slice(s.cur.length);else{keep=false;s.list=[...own]}}
+      $('k'+k).checked=keep}
+    else if(c)s.list=[...c.anom]}
+  {let v=c?c.date:(dd?dd+nowL().slice(10):nowL());if(v.length===10)v+='T00:00';$('date').value=v}$('res').value=c?c.res:'conforme';anomVis();$('com').value=c?c.com:'';$('msg').textContent='';pvAll();$('dlg').showModal();
+}
+function shrink(file){return new Promise(r=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1000/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=im.width*k;cv.height=im.height*k;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);r(cv.toDataURL('image/jpeg',.72))};im.src=fr.result};fr.readAsDataURL(file)})}
+$('slots').onchange=async e=>{const t=e.target;
+  if(t.type==='checkbox')pv(t.id[1]);
+  else if(t.type==='file'){const k=t.id[1],s=SL[k];for(const f of t.files){if(view(k).length>=s.max)break;s.list.push(await shrink(f))}t.value='';pv(k)}};
+$('slots').onclick=e=>{const t=e.target;if(t.dataset.r!==undefined){SL[t.dataset.k].list.splice(+t.dataset.r,1);pv(t.dataset.k)}};
+$('cancel').onclick=()=>$('dlg').close();
+$('save').onclick=async()=>{
+  const pay=k=>[...view(k)],isNew=k=>SL[k].keepable&&(keepOn(k)?SL[k].list.length>0:SL[k].list.some(p=>p.startsWith('data:')));
+  const b={ref:cur,date:$('date').value,res:$('res').value,com:$('com').value.trim(),main:pay('m'),comp:pay('c'),anom:$('res').value==='non-conforme'?pay('a'):[],replMain:isNew('m'),replComp:isNew('c')};
+  if(!b.date){$('msg').textContent='Indiquez la date du contrôle.';return}
+  if(b.res!=='non-vu'&&!b.main.length){$('msg').textContent='Une photo principale est obligatoire pour enregistrer le contrôle.';return}
+  if(b.res==='non-conforme'&&!b.anom.length){$('msg').textContent='Au moins une photo d’anomalie est obligatoire pour un contrôle non conforme.';return}
+  $('save').disabled=true;
+  try{const r=editId?await api('PUT','/api/controls/'+editId,b):await api('POST','/api/controls',b);
+    ctrls=editId?ctrls.map(x=>x.id===editId?r.c:x):[r.c,...ctrls];ITEMS=ITEMS.map(x=>x.r===r.it.r?r.it:x);$('dlg').close();render()}catch(e){$('msg').textContent=e.message}
+  $('save').disabled=false;
+};
+/* matériel (gestionnaire / admin) */
+const IS={m:{b:'Ajouter une photo principale',t:'Photo principale – 1 maximum',max:1,list:[]},c:{b:'Ajouter une photo complémentaire',t:'Photos complémentaires – 4 maximum',max:4,list:[]}};
+$('islots').innerHTML=Object.entries(IS).map(([k,s])=>`<div class="slot"><label>${s.t}</label><div id="in${k}"><label class="cam" for="if${k}">📷 ${s.b}</label><input type="file" id="if${k}" class="sr" accept="image/*"${s.max>1?' multiple':''}></div><div class="thumbs" id="iv${k}"></div></div>`).join('');
+function ipv(k){const s=IS[k];$('in'+k).classList.toggle('hid',s.list.length>=s.max);
+  $('iv'+k).innerHTML=s.list.map((p,j)=>`<div class="t"><img src="${purl(p)}" alt="photo"><button class="x" data-k="${k}" data-r="${j}" aria-label="Retirer">×</button></div>`).join('')}
+$('islots').onchange=async e=>{const t=e.target;if(t.type!=='file')return;const k=t.id[2],s=IS[k];
+  for(const f of t.files){if(s.list.length>=s.max)break;s.list.push(await shrink(f))}t.value='';ipv(k)};
+$('islots').onclick=e=>{const t=e.target;if(t.dataset.r!==undefined){IS[t.dataset.k].list.splice(+t.dataset.r,1);ipv(t.dataset.k)}};
+function openItem(ref){
+  itemRef=ref;const i=ref?ITEMS.find(x=>x.r===ref):{r:'',t:'',g:'charge',d:'',m:'',l:'',s:'',p:'',pc:[]};
+  $('it').textContent=ref?'Éditer – '+ref:'Nouveau matériel';$('iref').value=i.r;$('iref').readOnly=!!ref;
+  $('itype').value=i.t;$('igrp').value=i.g;$('ides').value=i.d;$('imas').value=i.m;$('iloc').value=i.l;$('isto').value=i.s;
+  IS.m.list=i.p?[i.p]:[];IS.c.list=[...(i.pc||[])];ipv('m');ipv('c');
+  $('idel').classList.toggle('hid',!ref);$('imsg').textContent='';$('dlg2').showModal();
+}
+function openDetail(ref){
+  const i=ITEMS.find(x=>x.r===ref);detRef=ref;
+  const im=p=>`<a href="${purl(p)}" target="_blank" rel="noopener"><img src="${purl(p)}" alt="photo"></a>`;
+  const all=byRef(ref),pd={};all.forEach(c=>{if(c.del)pd[(c.date||'').slice(0,4)]=1});
+  $('dd_t').textContent=i.r;$('dd_d').textContent=i.d;
+  $('dd_b').innerHTML=`<div class="row"><div><span class="mut">Type</span><br>${esc(i.t)||'—'} · ${GL[i.g]}</div><div><span class="mut">Masse</span><br>${i.m!==''?i.m+' kg':'—'}</div><div><span class="mut">Localisation</span><br>${esc(i.l)||'—'}</div><div><span class="mut">Lieu de stockage</span><br>${esc(i.s)||'—'}</div></div>
+  <label>Contrôles par année (depuis ${Y0})</label><div class="chips">${ALLY().map(a=>`<button class="yr ${ys(i,a).c}${pd[a]?' dl':''}" data-y="${a}" data-ref="${esc(i.r)}">${a}</button>`).join('')}</div>
+  <label>Tous les rapports émis (${all.length})</label>${all.map(c=>`<div class="ctl"><div class="top"><span class="mut"><strong>${esc(c.num)}</strong> · ${fmt(c.date)}${c.by?' · '+esc(c.by.n):''}${c.del?' · ⚠ suppression demandée':''}</span><span class="badge ${c.res}">${LAB[c.res]}</span></div><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn sec sm" data-rv="${c.id}">Voir le rapport</button><button class="btn sm" data-pdf="${c.id}">PDF</button></div></div>`).join('')||'<div class="mut">Aucun rapport émis pour ce matériel.</div>'}
+  <label>Photo principale</label>${i.p?`<div class="thumbs big">${im(i.p)}</div>`:'<div class="mut">Aucune photo.</div>'}
+  <label>Photos complémentaires</label>${(i.pc||[]).length?`<div class="thumbs big">${i.pc.map(im).join('')}</div>`:'<div class="mut">Aucune photo.</div>'}`;
+  $('dd_edit').classList.toggle('hid',!can('item.edit'));
+  if(isAdm()){$('dd_b').insertAdjacentHTML('beforeend','<label>Journal des modifications <span class="mut">(visible par les admins)</span></label><div id="dd_log" class="mut">Chargement…</div>');
+    api('GET','/api/log?ref='+encodeURIComponent(ref)+'&limit=200').then(L=>{if(detRef===ref&&$('dd_log'))$('dd_log').innerHTML=L.map(e=>logRow(e,1)).join('')||'Aucune modification enregistrée.'}).catch(()=>{if($('dd_log'))$('dd_log').textContent='Journal indisponible.'})}
+  $('dlgd').showModal();
+}
+$('dd_b').onclick=e=>{const t=e.target.closest('button');if(!t)return;const D=t.dataset;
+  if(D.y)openReport(D.ref,+D.y);
+  else if(D.rv){const c=ctrls.find(x=>x.id===D.rv);openReport(c.ref,+(c.date||'').slice(0,4))}
+  else if(D.pdf)exportPdf(ctrls.find(x=>x.id===D.pdf),t)};
+$('dd_edit').onclick=()=>{$('dlgd').close();openItem(detRef)};
+$('dd_close').onclick=()=>$('dlgd').close();
+$('add').onclick=()=>openItem(null);
+const poids=d=>{const k=/MASSE\s*(?:BAN\s*)?(\d+)\s*KG/i.exec(d||'');return k?Number(k[1]):null};
+$('ides').oninput=()=>{const w=poids($('ides').value);if(w!==null)$('imas').value=w};
+$('icancel').onclick=()=>$('dlg2').close();
+$('isave').onclick=async()=>{
+  const b={r:$('iref').value.trim(),t:$('itype').value,g:$('igrp').value,d:$('ides').value,m:$('imas').value.trim(),l:$('iloc').value,s:$('isto').value,p:IS.m.list[0]||'',pc:IS.c.list};
+  try{const it=itemRef?await api('PUT','/api/items/'+encodeURIComponent(itemRef),b):await api('POST','/api/items',b);
+    ITEMS=itemRef?ITEMS.map(x=>x.r===itemRef?it:x):[...ITEMS,it];$('dlg2').close();refreshLoc();render();if(itemRef)openDetail(itemRef)}catch(e){$('imsg').textContent=e.message}};
+$('idel').onclick=async()=>{if(!confirm('Supprimer définitivement ce matériel ?'))return;
+  try{await api('DELETE','/api/items/'+encodeURIComponent(itemRef));ITEMS=ITEMS.filter(x=>x.r!==itemRef);$('dlg2').close();refreshLoc();render()}catch(e){$('imsg').textContent=e.message}};
+/* rapport + PDF */
+const BT='class="btn sec sm" style="margin-top:8px"';
+function delUi(c){let h='';
+  if(c.del)h+=`<div class="mut" style="margin-top:8px;color:var(--yl)">⚠ Suppression demandée par ${esc(c.del.n)} le ${fmtAt(c.del.at)}${c.del.m?' – '+esc(c.del.m):''}</div>`;
+  if(can('ctl.edit'))h+=` <button ${BT} data-e="${c.id}">Modifier</button>`;
+  if(can('ctl.delete'))h+=` <button ${BT} data-d="${c.id}">Supprimer</button>`+(c.del?` <button ${BT} data-rc="${c.id}">Refuser la demande</button>`:'');
+  else if(!c.del)h+=` <button ${BT} data-rq="${c.id}">Demander la suppression</button>`;
+  else if(c.del.u===ME.u)h+=` <button ${BT} data-rc="${c.id}">Annuler ma demande</button>`;
+  return h}
+async function delCtrl(id){if(!confirm('Supprimer ce contrôle ?'))return false;
+  try{await api('DELETE','/api/controls/'+id);ctrls=ctrls.filter(x=>x.id!==id);render();return true}catch(x){alert(x.message);return false}}
+async function setDel(id,on,m){
+  try{const c=await api(on?'POST':'DELETE','/api/controls/'+id+'/delreq',on?{m}:undefined);ctrls=ctrls.map(x=>x.id===id?c:x);render();return true}catch(x){alert(x.message);return false}}
+function openDel(){
+  const L=ctrls.filter(c=>c.del).sort((a,b)=>b.del.at.localeCompare(a.del.at));
+  $('rl').innerHTML=L.map(c=>{const it=ITEMS.find(i=>i.r===c.ref)||{};
+    return `<div class="ctl"><div><strong>${esc(c.num)}</strong> · ${esc(c.ref)}</div><div>${esc(it.d||'')}</div><div class="mut">Contrôle du ${fmt(c.date)} · demandé par ${esc(c.del.n)} le ${fmtAt(c.del.at)}${c.del.m?' · « '+esc(c.del.m)+' »':''}</div>
+    <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn sec sm" data-v="${c.id}">Voir le rapport</button>${can('ctl.delete')?`<button class="btn sm" data-d="${c.id}">Supprimer le rapport</button>`:''}${can('ctl.delete')||c.del.u===ME.u?`<button class="btn sec sm" data-rc="${c.id}">${can('ctl.delete')?'Refuser la demande':'Annuler ma demande'}</button>`:''}</div></div>`}).join('')||'<div class="mut">Aucune demande de suppression en attente.</div>';
+  if(!$('dlgr').open)$('dlgr').showModal()}
+$('rl').onclick=async e=>{const D=e.target.dataset,id=D.v||D.d||D.rc,c=id&&ctrls.find(x=>x.id===id);if(!c)return;
+  if(D.v){$('dlgr').close();openReport(c.ref,+(c.date||'').slice(0,4))}
+  else if(D.d){if(await delCtrl(id))openDel()}
+  else if(await setDel(id,false))openDel()};
+$('rlclose').onclick=()=>$('dlgr').close();
+function openReport(ref,y){
+  const i=ITEMS.find(x=>x.r===ref);rp={i,y};
+  const st=statusOf(i,y),cs=byRef(ref).filter(c=>(c.date||'').startsWith(String(y))).reverse();
+  $('rt').textContent='Rapports de contrôle – '+ref+' – '+y;
+  $('rb').innerHTML=`<div class="mut">${esc(i.d)}</div>
+  <div class="row" style="margin-top:8px"><div><span class="mut">Type</span><br>${esc(i.t)} · ${GL[i.g]}</div><div><span class="mut">Masse</span><br>${i.m!==''?i.m+' kg':'—'}</div><div><span class="mut">Localisation</span><br>${esc(i.l)||'—'}</div><div><span class="mut">Lieu de stockage</span><br>${esc(i.s)||'—'}</div></div>
+  <div style="margin-top:12px"><span class="mut">Résultat ${y}</span><br><span class="badge ${st.cls}">${esc(st.txt)}</span></div>`+
+  (cs.map(c=>`<div class="ctl"><div class="top"><span class="mut"><strong>${esc(c.num)}</strong> · ${fmt(c.date)}${c.by?' · '+esc(c.by.n):''}</span><span class="badge ${c.res}">${LAB[c.res]}</span></div>${c.com?`<div>${esc(c.com).replace(/\n/g,'<br>')}</div>`:''}<div class="thumbs">${ph(c).map(p=>`<a href="${purl(p)}" target="_blank" rel="noopener"><img src="${purl(p)}" alt="photo"></a>`).join('')}</div><button class="btn sm" style="margin-top:8px" data-pdf="${c.id}">Exporter ce rapport en PDF</button>${delUi(c)}</div>`).join('')||'<div class="ctl mut">Aucun contrôle enregistré dans l’application pour cette année : pas de rapport.</div>');
+  $('rmsg').textContent='';$('rnew').classList.toggle('hid',!can('ctl.create'));if(!$('dlg3').open)$('dlg3').showModal();
+}
+$('rb').onclick=async e=>{const t=e.target,D=t.dataset,id=D.pdf||D.e||D.d||D.rq||D.rc,c=id&&ctrls.find(x=>x.id===id);if(!c)return;
+  if(D.pdf)exportPdf(c,t);
+  else if(D.e){$('dlg3').close();openDlg(c.ref,c)}
+  else if(D.d){if(await delCtrl(id))openReport(rp.i.r,rp.y)}
+  else if(D.rq){const m=prompt('Motif de la demande de suppression (facultatif) :');if(m!==null&&await setDel(id,true,m))openReport(rp.i.r,rp.y)}
+  else if(D.rc){if(await setDel(id,false))openReport(rp.i.r,rp.y)}};
+async function exportPdf(c,btn,cfg){
+  cfg=cfg||SETTINGS;
+  const i=ITEMS.find(x=>x.r===c.ref),msg=t=>{$('rmsg').textContent=t};
+  if(!window.jspdf){alert('Générateur PDF indisponible (voir README : jspdf.umd.min.js).');return}
+  btn.disabled=true;msg('Génération du PDF…');
+  try{
+    const d=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),W=210,M=10,CW=190,H=276,TOP=34;let yy=0;
+    const T=s=>String(s==null?'':s).replace(/[’‘]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,'-').replace(/·/g,'-');
+    const rgb=h=>[1,3,5].map(k=>parseInt(h.slice(k,k+2),16)),mix=(c,t,k)=>c.map(v=>Math.round(v*(1-k)+t*k)),segs=s=>String(s||'').split('**').map((t,k)=>[t,k%2]).filter(x=>x[0]);
+    const BL=rgb(cfg.colorBanner),DK=mix(BL,0,.2),LB=mix(BL,255,.85),GR=[196,202,214];
+    const mk=(h,w,sg)=>{const m=rgb(h);return {m,t:mix(m,0,.3),bg:mix(m,255,.88),bd:mix(m,255,.65),w,s:sg}};
+    const tone=c.res==='conforme'?mk(cfg.colorOk,'CONFORME',segs(cfg.okText)):c.res==='non-conforme'?mk(cfg.colorKo,'NON CONFORME',segs(cfg.koText))
+      :{m:[110,110,110],t:[70,70,70],bg:[238,239,242],bd:[200,203,210],w:'NON VU',s:[['Le matériel n’a pas été vu lors de ce contrôle.',0]]};
+    const load=p=>new Promise(r=>{const m=new Image();m.onload=()=>r(m);m.onerror=()=>r(null);m.src=p});
+    const font=(sz,b,col)=>{d.setFont('helvetica',b?'bold':'normal');d.setFontSize(sz);d.setTextColor(...(col||[0,0,0]))};
+    const ensure=h=>{if(yy+h>H){d.addPage();yy=TOP}};
+    const fit=(im,fmt,x,y,w,h)=>{if(!im)return;const k=Math.min(w/im.naturalWidth,h/im.naturalHeight),iw=im.naturalWidth*k,ih=im.naturalHeight*k;d.addImage(im,fmt,x+(w-iw)/2,y+(h-ih)/2,iw,ih)};
+    const sec=(n,t)=>{d.setFillColor(...LB);d.roundedRect(M,yy,CW,8,1,1,'F');d.setFillColor(...BL);d.roundedRect(M,yy,9,8,1,1,'F');
+      font(11,1,[255,255,255]);d.text(String(n),M+4.5,yy+5.6,{align:'center'});font(10.5,1,DK);d.text(T(t),M+13,yy+5.6);yy+=10};
+    const table=(x,y,w,lw,rows,minH)=>{const hs=rows.map(([a,b])=>{font(9,0);return Math.max(6.2,d.splitTextToSize(T(b),w-lw-4).length*4.1+2.2)});
+      const sum=hs.reduce((a,b)=>a+b,0),k=Math.max(1,(minH||0)/sum),tot=sum*k;
+      d.setDrawColor(...GR);d.setLineWidth(.25);d.roundedRect(x,y,w,tot,1,1,'S');d.line(x+lw,y,x+lw,y+tot);
+      let cy=y;rows.forEach(([a,b],j)=>{const h=hs[j]*k;if(j)d.line(x,cy,x+w,cy);
+        font(9,1,DK);d.text(T(a),x+2,cy+h/2+1.2);font(9,0);const ls=d.splitTextToSize(T(b),w-lw-4);d.text(ls,x+lw+2,cy+h/2+1.2-(ls.length-1)*1.9);cy+=h});
+      return tot};
+    const rich=(segs,x,y,w,sz,lh,col,dry)=>{const words=[];segs.forEach(([t,b])=>T(t).split(/\s+/).filter(Boolean).forEach(wd=>words.push([wd,b])));
+      font(sz,0);const sp=d.getTextWidth(' ');let line=[],lw=0,ly=y;
+      const flush=()=>{let cx=x;line.forEach(([wd,b,ww])=>{if(!dry){font(sz,b,col);d.text(wd,cx,ly)}cx+=ww+sp});ly+=lh;line=[];lw=0};
+      for(const [wd,b] of words){font(sz,b);const ww=d.getTextWidth(wd);if(line.length&&lw+sp+ww>w)flush();lw+=(line.length?sp:0)+ww;line.push([wd,b,ww])}
+      if(line.length)flush();return ly};
+    const [logo,main,...rest]=await Promise.all([cfg._noLogo?Promise.resolve(null):load(cfg._logo||'/logo.png'),load(c.main[0]?purl(c.main[0]):''),...c.comp.map(p=>load(purl(p))),...c.anom.map(p=>load(purl(p)))]);
+    const comp=rest.slice(0,c.comp.length),anom=rest.slice(c.comp.length);
+
+    /* bandeau titre */
+    d.setFillColor(...BL);d.roundedRect(M,32,CW,16,1.5,1.5,'F');
+    font(20,1,[255,255,255]);d.text(T(cfg.title),W/2,40.5,{align:'center'});
+    font(10.5,1,[255,255,255]);d.text(T(cfg.subtitle),W/2,45.5,{align:'center'});
+    yy=52;
+
+    /* mise en page sur UNE seule page : les hauteurs s'adaptent au contenu (photos réduites, commentaire réduit puis tronqué) */
+    const rows1=[['N° d’identification',i.r],['Désignation',i.d||'-'],['Catégorie',GL[i.g]],['Masse',i.m!==''?i.m+' kg':'-'],['Localisation',i.l||'-'],['Lieu de stockage',i.s||'-']];
+    const rows2=[['Date du contrôle',fmt(c.date)],['Contrôleur',c.by?c.by.n:'-']];
+    const natT=(w,lw,rows)=>rows.reduce((a,[,b])=>{font(9,0);return a+Math.max(6.2,d.splitTextToSize(T(b),w-lw-4).length*4.1+2.2)},0);
+    const AV=277-52,SECH=10,GAP=4,EMPTY=14,hasC=comp.length>0,hasA=anom.length>0;
+    const sLines=Math.round(rich(tone.s,0,0,82,8,3.6,null,true)/3.6),h1=Math.max(44,natT(95,38,rows1)),h2=Math.max(24.5,natT(95,40,rows2),17.5+(sLines-1)*3.6+3.4);
+    let hp=42;const base=()=>5*(SECH+GAP)+h1+h2+(hasC?hp:EMPTY)+(hasA?hp:EMPTY);
+    const cmTxt=T(c.com||'Aucune observation.'),cmL=s=>{font(s,0);return d.splitTextToSize(cmTxt,CW-6)};
+    while(hp>18&&base()+cmL(9.5).length*4.2+4>AV)hp--;
+    const room=AV-base();let fs=9.5,lines=cmL(fs),lh=4.2;
+    for(const s of [9.5,9,8.5,8,7.5,7]){fs=s;lh=s*.45;lines=cmL(s);if(lines.length*lh+4<=room)break}
+    const maxL=Math.max(1,Math.floor((room-4)/lh));
+    if(lines.length>maxL){lines=lines.slice(0,maxL);let l=lines[maxL-1];font(fs,0);while(l.length>3&&d.getTextWidth(l+' …')>CW-6)l=l.slice(0,-1);lines[maxL-1]=l.trimEnd()+' …'}
+    const hc=lines.length*lh+4;
+
+    /* 1 identification */
+    sec(1,'IDENTIFICATION DU MATÉRIEL');
+    table(M+95,yy,95,38,rows1,h1);
+    d.setFillColor(240,242,246);d.setDrawColor(...GR);d.roundedRect(M,yy,90,h1,1,1,'FD');
+    if(main)fit(main,'JPEG',M+1,yy+1,88,h1-2);else{font(9,0,[120,120,120]);d.text('Aucune photo',M+45,yy+h1/2,{align:'center'})}
+    yy+=h1+GAP;
+
+    /* 2 résultat */
+    sec(2,'RÉSULTAT DU CONTRÔLE');
+    table(M+95,yy,95,40,rows2,h2);
+    d.setFillColor(...tone.bg);d.setDrawColor(...tone.bd);d.roundedRect(M,yy,90,h2,1.5,1.5,'FD');
+    const cx=M+8.5,cy=yy+7;d.setFillColor(...tone.m);d.circle(cx,cy,4.8,'F');
+    if(c.res==='conforme'){d.setDrawColor(255,255,255);d.setLineWidth(1.2);d.line(cx-2.4,cy+.1,cx-.7,cy+1.9);d.line(cx-.7,cy+1.9,cx+2.6,cy-1.9)}
+    else{font(12,1,[255,255,255]);d.text(c.res==='non-vu'?'?':'!',cx,cy+1.9,{align:'center'})}
+    font(c.res==='non-conforme'?13:15,1,tone.m);d.text(tone.w,M+16,yy+9);
+    rich(tone.s,M+5,yy+17.5,82,8,3.6,tone.t);
+    yy+=h2+GAP;
+
+    /* 3 observations */
+    sec(3,'OBSERVATIONS / COMMENTAIRES');
+    d.setDrawColor(...GR);d.setLineWidth(.25);d.roundedRect(M,yy,CW,hc,1,1,'S');
+    font(fs,0,[0,0,0]);lines.forEach((l,k)=>d.text(l,M+3,yy+2.2+fs*.34+k*lh));
+    yy+=hc+GAP;
+
+    /* 4 et 5 photos */
+    const row=(n,t,ims,empty)=>{sec(n,t);d.setDrawColor(...GR);d.setLineWidth(.25);
+      if(!ims.length){d.roundedRect(M,yy,CW,EMPTY,1,1,'S');font(9.5,0,[80,80,80]);d.text(empty,W/2,yy+8,{align:'center'});yy+=EMPTY+GAP;return}
+      const cw=(CW-12)/4;ims.forEach((im,k)=>{const x=M+k*(cw+4);d.setFillColor(240,242,246);d.rect(x,yy,cw,hp,'FD');fit(im,'JPEG',x+.8,yy+.8,cw-1.6,hp-1.6)});yy+=hp+GAP};
+    row(4,'PHOTOS COMPLÉMENTAIRES',comp,'Aucune photo complémentaire.');
+    row(5,'PHOTOS D’ANOMALIES',anom,'Aucune anomalie constatée.');
+
+    /* en-tête et pied de chaque page */
+    const N=d.getNumberOfPages(),ed=new Date().toLocaleDateString('fr-FR');
+    for(let pg=1;pg<=N;pg++){d.setPage(pg);
+      if(logo){const lh=Math.min(19,38*logo.naturalHeight/logo.naturalWidth),lw=lh*logo.naturalWidth/logo.naturalHeight;d.addImage(logo,'PNG',M,8+(19-lh)/2,lw,lh)}
+      d.setDrawColor(...BL);d.setLineWidth(.3);d.line(70,9,70,27);d.line(140,9,140,27);
+      font(12,1,DK);d.text(T(cfg.org1),74,14);font(8.5,0,DK);
+      [cfg.org2,cfg.org3,cfg.org4].forEach((l,k)=>d.text(T(l),74,19.5+k*4));
+      [['RAPPORT N° :',c.num],['Émis par :',cfg.issuer],['Page :',pg+' / '+N]].forEach(([a,b],k)=>{font(8,0,DK);d.text(T(a),142,14+k*6);font(8,1,DK);d.text(T(b),163,14+k*6)});
+      d.setDrawColor(...BL);d.setLineWidth(.4);d.line(M,281,W-M,281);
+      font(7.5,0,DK);d.text('Date d\'émission : '+ed,M,286);
+      {const ft=T(cfg.footer)+(cfg.footer2?' - '+T(cfg.footer2):'');let fz=7.5;font(fz,0,DK);while(fz>5.5&&d.getTextWidth(ft)>CW-48){fz-=.25;font(fz,0,DK)}d.text(ft,W-M,286,{align:'right'})}}
+    dlBlob(c.num+'.pdf',d.output('blob'));msg('');
+  }catch(e){console.error(e);msg('Export impossible.');alert('Export PDF impossible.')}
+  btn.disabled=false;
+}
+$('rclose').onclick=()=>$('dlg3').close();
+$('rnew').onclick=()=>{const {i,y}=rp;$('dlg3').close();openDlg(i.r,null,y===new Date().getFullYear()?null:y+'-01-01')};
+/* export CSV */
+$('csv').onclick=()=>{
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const h=['N° composant','Type','Désignation','Masse kg','Localisation','2022','2023','2024','2025','2026 (fichier)','Dernier contrôle','Résultat','Contrôleur','Commentaire','Nb photos','N° rapport'];
+  const rows=ITEMS.map(i=>{const c=byRef(i.r)[0]||{};return [i.r,i.t,i.d,i.m,i.l,...(i.y||[]),fmt(c.date),c.res?LAB[c.res]:'',c.by?c.by.n:'',c.com,c.main?ph(c).length:'',c.num||''].map(q).join(';')});
+  dlBlob('controles.csv',new Blob(['\ufeff'+[h.map(q).join(';'),...rows].join('\n')],{type:'text/csv'}));
+};
+/* utilisateurs (admin) */
+async function users(){const us=UL=await api('GET','/api/users');
+  $('ul').innerHTML=us.map(u=>`<div class="ctl"><div class="top"><div><strong>${esc(u.n)}</strong> <span class="mut">${esc(u.u)}${u.must?' · mot de passe provisoire':''}${u.custom?' · droits personnalisés':''}</span></div>
+  <select data-ur="${esc(u.u)}" style="width:auto">${Object.keys(ROLES).map(r=>`<option value="${r}"${u.role===r?' selected':''}>${ROLES[r]}</option>`).join('')}</select></div>
+  <div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label style="display:flex;gap:6px;margin:0;align-items:center"><input type="checkbox" style="width:auto;min-height:auto" data-ua="${esc(u.u)}"${u.active?' checked':''}> actif</label>
+  <button class="btn sec sm" data-uk="${esc(u.u)}">Droits</button><button class="btn sec sm" data-ue="${esc(u.u)}">Modifier</button><button class="btn sec sm" data-up="${esc(u.u)}">Nouveau mot de passe</button>${u.u!==ME.u?`<button class="btn sec sm" data-ud="${esc(u.u)}" style="color:var(--ko)">Supprimer</button>`:''}</div></div>`).join('')}
+$('usr').onclick=async()=>{$('um').textContent='';try{await users();$('dlgu').showModal()}catch(e){alert(e.message)}};
+$('uclose').onclick=()=>$('dlgu').close();
+async function uact(f){$('um').textContent='';try{await f();await users()}catch(e){$('um').textContent=e.message;await users().catch(()=>{})}}
+$('ul').onchange=e=>{const t=e.target;if(t.dataset.ur)uact(()=>api('PUT','/api/users/'+t.dataset.ur,{role:t.value}));else if(t.dataset.ua)uact(()=>api('PUT','/api/users/'+t.dataset.ua,{active:t.checked}))};
+$('ul').onclick=e=>{const t=e.target;
+  if(t.dataset.uk)openPerms(t.dataset.uk);
+  else if(t.dataset.ue){const x=UL.find(y=>y.u===t.dataset.ue);editU=x.u;$('en').value=x.n;$('eu').value=x.u;$('em').textContent='';$('dlge').showModal()}
+  else if(t.dataset.up){const p=prompt('Nouveau mot de passe provisoire (10 caractères minimum) :');if(p)uact(()=>api('PUT','/api/users/'+t.dataset.up,{p}))}
+  else if(t.dataset.ud&&confirm('Supprimer ce compte ?'))uact(()=>api('DELETE','/api/users/'+t.dataset.ud))};
+$('nadd').onclick=()=>uact(async()=>{await api('POST','/api/users',{u:$('nu').value,n:$('nn').value,role:$('nr').value,p:$('np').value});['nu','nn','np'].forEach(i=>$(i).value='')});
+$('ecancel').onclick=()=>$('dlge').close();
+$('esave').onclick=async()=>{try{await api('PUT','/api/users/'+editU,{n:$('en').value,u:$('eu').value});$('dlge').close();await load();await users()}catch(e){$('em').textContent=e.message}};
+/* catégories et droits (admin) */
+const sameSet=(a,b)=>a.length===b.length&&a.every(x=>b.includes(x));
+function openRoles(){
+  $('rob').innerHTML=`<div style="overflow-x:auto"><table class="mx"><thead><tr><th>Droit</th>${RO.map(r=>`<th><input data-rn="${r}" value="${esc(ROLES[r])}" maxlength="30" aria-label="Nom de la catégorie"></th>`).join('')}</tr></thead><tbody>${PL.map(([k,l])=>`<tr><td>${l}</td>${RO.map(r=>`<td><input type="checkbox" data-rp="${r}|${k}"${RINFO[r].perms.includes(k)?' checked':''}${r==='admin'?' disabled':''} aria-label="${esc(l)}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  $('rom').textContent='';$('dlgro').showModal()}
+$('rol').onclick=openRoles;
+$('roclose').onclick=()=>$('dlgro').close();
+$('rosave').onclick=async()=>{$('rom').textContent='';
+  try{for(const r of RO){const n=document.querySelector(`[data-rn="${r}"]`).value.trim(),b={role:r};
+      if(n!==ROLES[r])b.n=n;
+      if(r!=='admin'){const p=PL.map(x=>x[0]).filter(k=>document.querySelector(`[data-rp="${r}|${k}"]`).checked);if(!sameSet(p,RINFO[r].perms))b.perms=p}
+      if(b.n!==undefined||b.perms)await api('PUT','/api/roles',b)}
+    await load();openRoles();$('rom').style.color='var(--ok)';$('rom').textContent='Enregistré.'}
+  catch(e){$('rom').style.color='var(--ko)';$('rom').textContent=e.message;try{await load()}catch(x){}}};
+$('rodef').onclick=async()=>{if(!confirm('Rétablir les noms et droits par défaut des catégories ? (les droits personnalisés de comptes ne sont pas modifiés)'))return;
+  try{await api('PUT','/api/roles',{reset:true});await load();openRoles()}catch(e){$('rom').style.color='var(--ko)';$('rom').textContent=e.message}};
+/* journal (admin) */
+const LA={'ctl.create':'Contrôle créé','ctl.edit':'Contrôle modifié','ctl.delete':'Contrôle supprimé','ctl.delreq':'Suppression demandée','ctl.delreq.cancel':'Demande de suppression levée','item.add':'Matériel ajouté','item.edit':'Matériel modifié','item.delete':'Matériel supprimé','user.create':'Compte créé','user.edit':'Compte modifié','user.delete':'Compte supprimé','role.edit':'Catégories / droits','settings.pdf':'Trame PDF','settings.ui':'Apparence'};
+const logRow=(e,noref)=>`<div class="ctl"><div class="mut">${fmtAt(e.t)} · <strong>${esc(e.n)}</strong></div><div><strong>${esc(LA[e.a]||e.a)}</strong>${e.r&&!noref?` · <a href="#" data-lr="${esc(e.r)}">${esc(e.r)}</a>`:''}${e.no?' · '+esc(e.no):''}${e.tu?' · compte '+esc(e.tu):''}</div>${e.x?`<div class="mut">${esc(e.x)}</div>`:''}</div>`;
+let JLOG=[];
+function drawLog(){const k=$('jk').value,q=$('jq').value.toLowerCase();
+  const L=JLOG.filter(e=>(!k||e.a.startsWith(k))&&(!q||(e.n+' '+e.u+' '+(e.r||'')+' '+(e.no||'')+' '+(e.tu||'')+' '+(e.x||'')+' '+(LA[e.a]||'')).toLowerCase().includes(q)));
+  $('jl').innerHTML=L.map(e=>logRow(e)).join('')||'<div class="mut">Aucune entrée.</div>'}
+$('jnl').onclick=async()=>{try{JLOG=await api('GET','/api/log?limit=1000');$('jk').value='';$('jq').value='';drawLog();$('dlgj').showModal()}catch(e){alert(e.message)}};
+$('jk').onchange=drawLog;$('jq').oninput=drawLog;
+$('jclose').onclick=()=>$('dlgj').close();
+$('jl').onclick=e=>{const a=e.target.closest('[data-lr]');if(!a)return;e.preventDefault();if(ITEMS.some(i=>i.r===a.dataset.lr)){$('dlgj').close();openDetail(a.dataset.lr)}};
+/* droits par utilisateur (admin) */
+const PL=[['ctl.create','Faire des contrôles'],['ctl.edit','Modifier les contrôles / rapports'],['ctl.delete','Supprimer les contrôles et traiter les demandes de suppression'],['item.edit','Modifier les fiches matériel'],['item.add','Ajouter des matériels'],['item.delete','Supprimer des matériels']];
+let permU=null;
+function openPerms(u){permU=UL.find(x=>x.u===u);const adm=permU.role==='admin';
+  $('kt').textContent=permU.n+' · '+ROLES[permU.role];
+  $('kn').textContent=adm?'Un admin dispose de tous les droits (non modifiable).':'Cochez les droits accordés. « Rôle par défaut » rétablit les droits standards du rôle (changer le rôle les rétablit aussi).';
+  $('kb').innerHTML=PL.map(([k,l])=>`<label class="chk"><input type="checkbox" data-pk="${k}"${permU.perms.includes(k)?' checked':''}${adm?' disabled':''}> ${l}</label>`).join('');
+  $('ksave').classList.toggle('hid',adm);$('kreset').classList.toggle('hid',adm);$('km').textContent='';$('dlgk').showModal()}
+$('ksave').onclick=async()=>{const p=[...document.querySelectorAll('#kb [data-pk]')].filter(x=>x.checked).map(x=>x.dataset.pk);
+  try{await api('PUT','/api/users/'+permU.u,{perms:p});$('dlgk').close();if(permU.u===ME.u)await load();await users()}catch(e){$('km').textContent=e.message}};
+$('kreset').onclick=async()=>{try{await api('PUT','/api/users/'+permU.u,{perms:null});$('dlgk').close();await users()}catch(e){$('km').textContent=e.message}};
+$('kclose').onclick=()=>$('dlgk').close();
+/* trame PDF (admin) */
+const SF=[['org1','Organisme – ligne 1 (en gras)'],['org2','Organisme – ligne 2'],['org3','Organisme – ligne 3'],['org4','Organisme – ligne 4'],['issuer','« Émis par »'],['title','Titre du bandeau'],['subtitle','Sous-titre du bandeau'],['okText','Texte « Conforme »',1],['koText','Texte « Non conforme »',1],['footer','Pied de page – texte'],['footer2','Pied de page – suite (même ligne)']];
+const SC=[['colorBanner','Bandeau'],['colorOk','« Conforme »'],['colorKo','« Non conforme »']];
+$('sfb').innerHTML=SF.map(([k,l,ta])=>`<label>${l}</label>${ta?`<textarea id="sf_${k}" style="min-height:64px"></textarea>`:`<input id="sf_${k}">`}`).join('')+'<label>Couleurs</label><div style="display:flex;gap:10px;flex-wrap:wrap">'+SC.map(([k,l])=>`<label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--tx)"><input type="color" id="sf_${k}" style="width:48px;min-height:36px;padding:2px">${l}</label>`).join('')+'</div>';
+const cfgKeys=SF.concat(SC).map(x=>x[0]);
+const cfgVals=()=>Object.fromEntries(cfgKeys.map(k=>[k,$('sf_'+k).value]));
+function fillCfg(c){cfgKeys.forEach(k=>$('sf_'+k).value=c[k])}
+$('pdfcfg').onclick=()=>{fillCfg(SETTINGS);logoNew=null;logoReset=false;$('sflogo').src='/logo.png?'+Date.now();$('sm').textContent='';$('dls').showModal()};
+const toPng=f=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,600/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);r(cv.toDataURL('image/png'))};im.src=fr.result};fr.readAsDataURL(f)});
+$('sflogof').onchange=async e=>{const f=e.target.files[0];if(!f)return;logoNew=await toPng(f);logoReset=false;$('sflogo').src=logoNew;e.target.value=''};
+$('sflogod').onclick=()=>{logoNew=null;logoReset=true;$('sflogo').removeAttribute('src');$('sm').textContent='Le logo par défaut sera rétabli à l’enregistrement.'};
+const fakeCtl=res=>({id:'apercu',num:'CR-'+new Date().getFullYear()+'-000000000',ref:ITEMS[0].r,date:nowL(),res,com:'Exemple de commentaire.',main:[],comp:[],anom:[],by:{u:ME.u,n:ME.n}});
+const pvCfg=()=>({...cfgVals(),_logo:logoNew,_noLogo:logoReset});
+$('spv1').onclick=e=>exportPdf(fakeCtl('conforme'),e.target,pvCfg());
+$('spv2').onclick=e=>exportPdf(fakeCtl('non-conforme'),e.target,pvCfg());
+$('ssave').onclick=async()=>{try{SETTINGS=await api('PUT','/api/settings',{...cfgVals(),logo:logoNew||undefined,resetLogo:logoReset});logoNew=null;logoReset=false;$('dls').close()}catch(e){$('sm').textContent=e.message;$('sm').style.color='var(--ko)'}};
+$('sdef').onclick=async()=>{if(!confirm('Rétablir tous les textes, couleurs et le logo par défaut ?'))return;
+  try{SETTINGS=await api('PUT','/api/settings',{reset:true});fillCfg(SETTINGS);logoNew=null;logoReset=false;$('sflogo').src='/logo.png?'+Date.now();$('sm').textContent='Valeurs par défaut rétablies.'}catch(e){$('sm').textContent=e.message}};
+$('scancel').onclick=()=>$('dls').close();
+/* apparence (admin) */
+const showUI=u=>{document.documentElement.dataset.ui=u;document.querySelectorAll('.uo').forEach(b=>b.classList.toggle('sel',b.dataset.ui===u))};
+function saveUI(u){UI=u;showUI(u);try{localStorage.setItem('vgp-ui',u)}catch(e){}}
+$('uib').onclick=()=>{UIsel=UI;showUI(UI);$('uim').textContent='';$('dlgui').showModal()};
+$('uib2').onclick=e=>{const b=e.target.closest('.uo');if(b){UIsel=b.dataset.ui;showUI(UIsel)}};
+$('uisave').onclick=async()=>{try{const r=await api('PUT','/api/ui',{ui:UIsel});saveUI(r.ui);$('dlgui').close()}catch(e){$('uim').textContent=e.message}};
+$('uicancel').onclick=()=>$('dlgui').close();
+$('dlgui').addEventListener('close',()=>showUI(UI));
+/* démarrage */
+$('fy').innerHTML+=ALLY().map(y=>`<option>${y}</option>`).join('');
+$('fltb').onclick=()=>{const o=$('flt').classList.toggle('open');$('fltb').textContent=o?'Filtres ▴':'Filtres ▾'};
+const hmSync=()=>{if(innerWidth>600)$('hm').open=true};hmSync();addEventListener('resize',hmSync);
+(async()=>{try{const m=await api('GET','/api/me');ME=m;if(m.must){$('login').classList.add('hid');openPwd(true)}else await load()}catch(e){showLogin()}})();
+
+</script>
+</body>
+</html>
